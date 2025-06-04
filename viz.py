@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import argparse
 import seaborn as sns
 import torch
 import os
@@ -7,6 +8,7 @@ from check_gen import load_dataset, load_model
 
 
 def plot_logits(path: str, seq: str, probs: bool = False):
+    path = "results/scratch/" + path
     model, cfg = load_model(path)
     dataset = load_dataset(path)
 
@@ -56,13 +58,11 @@ def plot_logits(path: str, seq: str, probs: bool = False):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Plot logits for a sequence.")
     parser.add_argument(
         "--path",
         type=str,
-        default="results/scratch/aqx6xdv8",
+        default="",
         help="Path to the model directory containing the latest checkpoint.",
     )
     parser.add_argument(

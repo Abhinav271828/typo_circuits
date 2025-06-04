@@ -97,6 +97,9 @@ def train(cfg, model, dataloader, optimizer, device):
                 save_model(cfg, model, optimizer, it)
                 break
 
+            for seq in sequences:
+                print(dataloader.dataset.PCFG.detokenize_sentence(seq))
+
             # Split sequences into inputs and labels
             # (B, L) -> (B, L-1), (B, L-1)
             B = sequences.size(0)

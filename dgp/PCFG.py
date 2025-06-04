@@ -114,6 +114,8 @@ class PCFG:
         self.production_rules = None
         self.lexical_symbolic_rules = None
 
+        self.error_type = config["error_type"]
+        self.error_rate = config["error_rate"]
         # Concept classes object
         if language == "expr":
             self.n_digits = config["n_digits"]
@@ -191,13 +193,16 @@ class PCFG:
         """
 
         # Gather concept classes' vocabulary
-        vocab = {}
+        base_vocab = {}
         vocab_size = 0
         if self.language == "expr":
             for token in ["dig", "un", "bin", "tern"] + list(range(10)):
-                vocab[str(token)] = vocab_size
+                base_vocab[str(token)] = vocab_size
                 vocab_size += 1
-        vocab_size = len(vocab)
+        vocab_size = len(base_vocab)
+        self.base_vocab = base_vocab
+
+        vocab = base_vocab.copy()
 
         # Add special tokens to be used for defining sequences in dataloader
         for special_token in [

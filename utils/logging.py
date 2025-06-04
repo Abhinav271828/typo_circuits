@@ -57,7 +57,7 @@ def open_log(cfg):
     if cfg.deploy:
         fname = "logs/" + cfg.tag + "/" + wandb.run.id + ".log"
         fout = open(fname, "a", 1)
-        sys.stdout = fout
+        # sys.stdout = fout
         sys.stderr = fout
         print(cfg)
         return fout
