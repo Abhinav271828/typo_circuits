@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--path",
         type=str,
-        default="results/scratch/aqx6xdv8",
+        default="",
         help="Path to the model directory",
     )
     parser.add_argument(
@@ -70,6 +70,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Use the provided path and number of samples
 
-    print_samples(
-        args.path, args.num_samples
-    )  # Change the path to your model directory and number of samples as needed
+    print_samples("results/scratch/" + args.path, args.num_samples)
