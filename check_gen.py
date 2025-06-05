@@ -7,7 +7,7 @@ from model import GPT
 from dgp import get_dataloader
 
 
-def load_dataset(path):
+def load_dataloader(path):
     state_dict = torch.load(os.path.join(path, "latest_ckpt.pt"), map_location="cpu")
     cfg = state_dict["config"]
     dataloader = get_dataloader(
@@ -21,7 +21,7 @@ def load_dataset(path):
         batch_size=cfg.data.batch_size,
         num_workers=0,
     )
-    return dataloader.dataset
+    return dataloader
 
 
 def load_model(path):
@@ -37,19 +37,23 @@ def load_model(path):
     return model, cfg
 
 
-def print_samples(path, n):
+def print_samples(path, n, use_model):
     model, cfg = load_model(path)
-    dataset = load_dataset(path)
+    dataloader = load_dataloader(path)
+    dataset = dataloader.dataset
 
-    inputs = dataset.template.repeat(n, 1)
-    samples, _ = model.sample(
-        inputs=inputs,
-        max_new_tokens=cfg.data.max_sample_length - 10,
-        retrieve_llhoods="tokens",
-    )
+    if use_model:
+        inputs = dataset.template.repeat(n, 1)
+        samples, _ = model.sample(
+            inputs=inputs,
+            max_new_tokens=cfg.data.max_sample_length - 10,
+            retrieve_llhoods="tokens",
+        )
 
-    # Transfer to CPU and detokenize
-    samples = samples.cpu().numpy()
+    else:
+        # Use the dataloader
+        samples = [dataset[i][0] for i in range(n)]
+
     samples = [dataset.PCFG.detokenize_sentence(s).split("<eos>")[0] for s in samples]
 
     for sample in samples:
@@ -67,7 +71,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_samples", type=int, default=10, help="Number of samples to generate"
     )
+    parser.add_argument(
+        "--use_model",
+        action="store_true",
+        default=False,
+        help="Use the model to generate samples",
+    )
     args = parser.parse_args()
     # Use the provided path and number of samples
 
-    print_samples("results/scratch/" + args.path, args.num_samples)
+    print_samples("results/scratch/" + args.path, args.num_samples, args.use_model)

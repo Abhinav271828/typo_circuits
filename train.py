@@ -88,7 +88,7 @@ def train(cfg, model, dataloader, optimizer, device):
 
     # Training loop
     for e in range(cfg.epochs):
-        for sequences, seq_lengths in tqdm(
+        for sequences, seq_lengths, idx, err in tqdm(
             dataloader, desc=f"Epoch {e}", total=cfg.optimizer.total_iters
         ):
             if (
@@ -96,9 +96,6 @@ def train(cfg, model, dataloader, optimizer, device):
             ):  # Training destabilizes after a certain point when the loss is too low, so we break
                 save_model(cfg, model, optimizer, it)
                 break
-
-            for seq in sequences:
-                print(dataloader.dataset.PCFG.detokenize_sentence(seq))
 
             # Split sequences into inputs and labels
             # (B, L) -> (B, L-1), (B, L-1)

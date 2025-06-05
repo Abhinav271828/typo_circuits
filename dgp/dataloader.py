@@ -168,33 +168,39 @@ class PCFGDataset:
             sequence = torch.tensor(self.PCFG.tokenize_sentence(sequence))
             seq_length = float(sequence.size(0))
 
-            # TODO add noise
-            match self.PCFG.error_type:
-                case "swp":
-                    # Swap a random token with its neighbour
-                    if sequence.size(0) > 2:
-                        idx = np.random.randint(0, sequence.size(0) - 1)
-                        sequence[idx], sequence[idx + 1] = (
-                            sequence[idx + 1],
-                            sequence[idx],
+            idx = -1
+            err = -1
+            if np.random.rand() < self.PCFG.error_rate:
+                match self.PCFG.error_type:
+                    case "swp":
+                        # Swap a random token with its neighbour
+                        if sequence.size(0) > 2:
+                            idx = np.random.randint(0, sequence.size(0) - 1)
+                            sequence[idx], sequence[idx + 1] = (
+                                sequence[idx + 1],
+                                sequence[idx],
+                            )
+                        err = 0
+                    case "del":
+                        # Delete a random token
+                        if sequence.size(0) > 1:
+                            idx = np.random.randint(0, sequence.size(0))
+                            sequence = torch.cat((sequence[:idx], sequence[idx + 1 :]))
+                        err = 1
+                    case "ins":
+                        # Insert a random token
+                        idx = np.random.randint(0, sequence.size(0) + 1)
+                        tok = np.random.randint(0, len(self.PCFG.vocab) - 8)
+                        sequence = torch.cat(
+                            (sequence[:idx], torch.tensor([tok]), sequence[idx:])
                         )
-                case "del":
-                    # Delete a random token
-                    if sequence.size(0) > 1:
+                        err = 2
+                    case "sub":
+                        # Substitute a random token with another token
                         idx = np.random.randint(0, sequence.size(0))
-                        sequence = torch.cat((sequence[:idx], sequence[idx + 1 :]))
-                case "ins":
-                    # Insert a random token
-                    idx = np.random.randint(0, sequence.size(0) + 1)
-                    tok = np.random.randint(0, len(self.PCFG.vocab) - 8)
-                    sequence = torch.cat(
-                        (sequence[:idx], torch.tensor([tok]), sequence[idx:])
-                    )
-                case "sub":
-                    # Substitute a random token with another token
-                    idx = np.random.randint(0, sequence.size(0))
-                    tok = np.random.randint(0, len(self.PCFG.vocab) - 8)
-                    sequence[idx] = tok
+                        tok = np.random.randint(0, len(self.PCFG.vocab) - 8)
+                        sequence[idx] = tok
+                        err = 3
 
             # Define instruction (NOTE: kept null for now, but the code can be changed here to implement tasks)
             task_token = np.random.choice(self.task_tokens, p=self.prior_over_tasks)
@@ -230,4 +236,4 @@ class PCFGDataset:
                 )
                 break
 
-        return sequence, seq_length
+        return sequence, seq_length, idx, err

@@ -4,13 +4,13 @@ import seaborn as sns
 import torch
 import os
 from dgp import get_dataloader
-from check_gen import load_dataset, load_model
+from check_gen import load_dataloader, load_model
 
 
 def plot_logits(path: str, sfile: str, probs: bool = False):
     path = "results/scratch/" + path
     model, cfg = load_model(path)
-    dataset = load_dataset(path)
+    dataset = load_dataloader(path).dataset
 
     instr = torch.tensor(
         dataset.PCFG.tokenize_sentence(
@@ -51,7 +51,7 @@ def plot_logits(path: str, sfile: str, probs: bool = False):
                 fmt="0.1f",
                 linewidths=0.5,
                 cmap="rocket",
-                xticklabels=seq.split(),
+                xticklabels=dataset.PCFG.detokenize_sentence(sequence[0, 7:-1]).split(),
                 yticklabels=[
                     "dig",
                     "un",
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--probs",
-        type=bool,
+        action="store_true",
         default=False,
         help="Whether to plot probabilities instead of logits.",
     )
