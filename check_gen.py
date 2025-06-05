@@ -2,6 +2,8 @@ import torch
 import os
 import pickle as pkl
 import argparse
+import random
+import time
 
 from model import GPT
 from dgp import get_dataloader
@@ -37,7 +39,7 @@ def load_model(path):
     return model, cfg
 
 
-def print_samples(path, n, use_model):
+def print_samples(path, n, use_model, error):
     model, cfg = load_model(path)
     dataloader = load_dataloader(path)
     dataset = dataloader.dataset
@@ -52,12 +54,23 @@ def print_samples(path, n, use_model):
 
     else:
         # Use the dataloader
-        samples = [dataset[i][0] for i in range(n)]
+        random.seed(int(time.time()))
+        datapoints = random.sample(range(len(dataset)), n)
+        data = [dataset[i] for i in datapoints]
+        samples = [point[0] for point in data]
+        indices = [point[2] for point in data]
 
-    samples = [dataset.PCFG.detokenize_sentence(s).split("<eos>")[0] for s in samples]
+    samples = [
+        dataset.PCFG.detokenize_sentence(s).split("<eos>")[0][33:] for s in samples
+    ]
 
-    for sample in samples:
-        print(sample[33:])
+    for sample, idx in zip(samples, indices):
+        if error and idx != -1:
+            print(" ".join(sample.split()[:idx]), end=" ")
+            print("\033[91m" + sample.split()[idx] + "\033[0m", end=" ")
+            print(" ".join(sample.split()[idx + 1 :]))
+        else:
+            print(sample)
 
 
 if __name__ == "__main__":
@@ -77,7 +90,15 @@ if __name__ == "__main__":
         default=False,
         help="Use the model to generate samples",
     )
+    parser.add_argument(
+        "--error",
+        action="store_true",
+        default=False,
+        help="Show where the typos are, if any (doesn't work with model)",
+    )
     args = parser.parse_args()
     # Use the provided path and number of samples
 
-    print_samples("results/scratch/" + args.path, args.num_samples, args.use_model)
+    print_samples(
+        "results/scratch/" + args.path, args.num_samples, args.use_model, args.error
+    )

@@ -1,6 +1,8 @@
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
+import random
+import time
 import os
 from .PCFG import PCFG
 import pickle as pkl
@@ -48,7 +50,6 @@ def get_dataloader(
     # Create a dataloader
     dataloader = DataLoader(
         dataset,
-        sampler=torch.utils.data.RandomSampler(dataset, replacement=True),
         shuffle=False,
         pin_memory=True,
         batch_size=batch_size,
@@ -170,7 +171,7 @@ class PCFGDataset:
 
             idx = -1
             err = -1
-            if np.random.rand() < self.PCFG.error_rate:
+            if random.random() < self.PCFG.error_rate:
                 match self.PCFG.error_type:
                     case "swp":
                         # Swap a random token with its neighbour
