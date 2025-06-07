@@ -12,7 +12,7 @@ data:
     n_digits: 10
     n_ops: 3
     error_type: 'sub' # ['swp', 'ins', 'del', 'sub']
-    error_rate: 0.1
+    error_rate: 0
   alpha: 1e5 # depends on the prior type
   prior_type: 'dirichlet' # ['dirichlet', 'zipfian', 'structured_zeros', 'uniform']
   max_sample_length: 128
